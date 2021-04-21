@@ -10,6 +10,7 @@ private const val BRANCH = "branch"
 private const val REPO = "repo"
 private const val FILE = "file"
 
+const val MAGISK_ALPHA = "vvb2060/magisk_files"
 const val MAGISK_MAIN = "topjohnwu/Magisk"
 
 interface GithubPageServices {
@@ -19,6 +20,9 @@ interface GithubPageServices {
 }
 
 interface JSDelivrServices {
+
+    @GET("$MAGISK_ALPHA@{$REVISION}/alpha.json")
+    suspend fun fetchAlphaUpdate(@Path(REVISION) revision: String): UpdateInfo
 
     @GET("$MAGISK_MAIN@{$REVISION}/scripts/module_installer.sh")
     @Streaming
