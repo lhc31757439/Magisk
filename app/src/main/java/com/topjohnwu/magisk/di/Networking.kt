@@ -6,10 +6,6 @@ import com.topjohnwu.magisk.BuildConfig
 import com.topjohnwu.magisk.ProviderInstaller
 import com.topjohnwu.magisk.core.Config
 import com.topjohnwu.magisk.core.Info
-import com.topjohnwu.magisk.ktx.precomputedText
-import com.topjohnwu.magisk.utils.MarkwonImagePlugin
-import io.noties.markwon.Markwon
-import io.noties.markwon.html.HtmlPlugin
 import okhttp3.Cache
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -88,15 +84,4 @@ inline fun <reified T> createApiService(retrofitBuilder: Retrofit.Builder, baseU
         .baseUrl(baseUrl)
         .build()
         .create(T::class.java)
-}
-
-fun createMarkwon(context: Context, okHttpClient: OkHttpClient): Markwon {
-    return Markwon.builder(context)
-        .textSetter { textView, spanned, _, onComplete ->
-            textView.tag = onComplete
-            textView.precomputedText = spanned
-        }
-        .usePlugin(HtmlPlugin.create())
-        .usePlugin(MarkwonImagePlugin(okHttpClient))
-        .build()
 }

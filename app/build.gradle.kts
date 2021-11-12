@@ -86,12 +86,6 @@ dependencies {
     implementation("${bindingAdapter}:${vBAdapt}")
     implementation("${bindingAdapter}-recyclerview:${vBAdapt}")
 
-    val vMarkwon = "4.6.2"
-    implementation("io.noties.markwon:core:${vMarkwon}")
-    implementation("io.noties.markwon:html:${vMarkwon}")
-    implementation("io.noties.markwon:image:${vMarkwon}")
-    implementation("com.caverock:androidsvg:1.4")
-
     val vLibsu = "3.2.1"
     implementation("com.github.topjohnwu.libsu:core:${vLibsu}")
     implementation("com.github.topjohnwu.libsu:io:${vLibsu}")
