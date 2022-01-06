@@ -100,13 +100,27 @@ sepolicy *sepolicy::from_file(const char *file) {
     return sepol;
 }
 
-sepolicy *sepolicy::compile_split() {
+sepolicy *sepolicy::compile_split(bool force_debuggable) {
     char path[128], plat_ver[10];
     cil_db_t *db = nullptr;
     sepol_policydb_t *pdb = nullptr;
     FILE *f;
     int policy_ver;
     const char *cil_file;
+#if MAGISK_DEBUG
+    cil_set_log_level(CIL_INFO);
+#endif
+    cil_set_log_handler(+[](int lvl, char* msg) {
+        if (lvl == CIL_ERR) {
+            LOGE("cil: %s", msg);
+        } else if (lvl == CIL_WARN) {
+            LOGW("cil: %s", msg);
+        } else if (lvl == CIL_INFO) {
+            LOGI("cil: %s", msg);
+        } else {
+            LOGD("cil: %s", msg);
+        }
+    });
 
     cil_db_init(&db);
     run_finally fin([db_ptr = &db]{ cil_db_destroy(db_ptr); });
@@ -114,7 +128,7 @@ sepolicy *sepolicy::compile_split() {
     cil_set_multiple_decls(db, 1);
     cil_set_disable_neverallow(db, 1);
     cil_set_target_platform(db, SEPOL_TARGET_SELINUX);
-    cil_set_attrs_expand_generated(db, 0);
+    cil_set_attrs_expand_generated(db, 1);
 
     f = xfopen(SELINUX_VERSION, "re");
     fscanf(f, "%d", &policy_ver);
@@ -126,8 +140,16 @@ sepolicy *sepolicy::compile_split() {
     fscanf(f, "%s", plat_ver);
     fclose(f);
 
-    // plat
-    load_cil(db, SPLIT_PLAT_CIL);
+    if (cil_file = "/system_ext/etc/selinux/userdebug_plat_sepolicy.cil";
+        force_debuggable && access(cil_file, R_OK) == 0) {
+        load_cil(db, cil_file);
+    } else if (cil_file = "/debug_ramdisk/userdebug_plat_sepolicy.cil";
+        force_debuggable && access(cil_file, R_OK) == 0) {
+        load_cil(db, cil_file);
+    } else {
+        // plat
+        load_cil(db, SPLIT_PLAT_CIL);
+    }
 
     sprintf(path, PLAT_POLICY_DIR "mapping/%s.cil", plat_ver);
     load_cil(db, path);
@@ -189,12 +211,16 @@ sepolicy *sepolicy::compile_split() {
 sepolicy *sepolicy::from_split() {
     const char *odm_pre = ODM_POLICY_DIR "precompiled_sepolicy";
     const char *vend_pre = VEND_POLICY_DIR "precompiled_sepolicy";
-    if (access(odm_pre, R_OK) == 0 && check_precompiled(odm_pre))
+    const char* force_debuggable_env = getenv("INIT_FORCE_DEBUGGABLE");
+    using namespace std::string_view_literals;
+    bool force_debuggable = force_debuggable_env && force_debuggable_env == "true"sv;
+    LOGD("force debuggable %s\n", force_debuggable ? "true" : "false");
+    if (!force_debuggable && access(odm_pre, R_OK) == 0 && check_precompiled(odm_pre))
         return sepolicy::from_file(odm_pre);
-    else if (access(vend_pre, R_OK) == 0 && check_precompiled(vend_pre))
+    else if (!force_debuggable && access(vend_pre, R_OK) == 0 && check_precompiled(vend_pre))
         return sepolicy::from_file(vend_pre);
     else
-        return sepolicy::compile_split();
+        return sepolicy::compile_split(force_debuggable);
 }
 
 sepolicy::~sepolicy() {

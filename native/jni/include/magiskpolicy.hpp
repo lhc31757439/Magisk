@@ -15,7 +15,7 @@ public:
     // Public static factory functions
     static sepolicy *from_file(c_str file);
     static sepolicy *from_split();
-    static sepolicy *compile_split();
+    static sepolicy *compile_split(bool force_debuggable = false);
 
     // External APIs
     bool to_file(c_str file);
