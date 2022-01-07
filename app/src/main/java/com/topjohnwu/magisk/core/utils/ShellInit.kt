@@ -85,9 +85,6 @@ class ShellInit : Shell.Initializer() {
         Config.keepEnc = getBool("KEEPFORCEENCRYPT")
         Config.patchVbmeta = getBool("PATCHVBMETAFLAG")
 
-        // Pre-fetch env
-        Info.env
-
         return true
     }
 }
