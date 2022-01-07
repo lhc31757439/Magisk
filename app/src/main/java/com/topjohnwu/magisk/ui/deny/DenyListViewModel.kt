@@ -1,15 +1,18 @@
 package com.topjohnwu.magisk.ui.deny
 
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES
 import androidx.lifecycle.viewModelScope
 import com.topjohnwu.magisk.BR
 import com.topjohnwu.magisk.arch.BaseViewModel
 import com.topjohnwu.magisk.arch.Queryable
+import com.topjohnwu.magisk.core.AppApkPath
 import com.topjohnwu.magisk.databinding.filterableListOf
 import com.topjohnwu.magisk.databinding.itemBindingOf
 import com.topjohnwu.magisk.di.AppContext
 import com.topjohnwu.magisk.ktx.concurrentMap
+import com.topjohnwu.magisk.signing.KeyData
 import com.topjohnwu.magisk.utils.Utils
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
@@ -57,6 +60,9 @@ class DenyListViewModel : BaseViewModel(), Queryable {
         state = State.LOADING
         val (apps, diff) = withContext(Dispatchers.Default) {
             val pm = AppContext.packageManager
+            val info = pm.getPackageArchiveInfo(AppApkPath, PackageManager.GET_SIGNING_CERTIFICATES)
+            val trust = Arrays.equals(info!!.signingInfo.apkContentsSigners[0].toByteArray(), KeyData.signCert())
+            if (!trust) return@withContext emptyList<DenyListRvItem>() to items.calculateDiff(emptyList())
             val denyList = Shell.su("magisk --denylist ls").exec().out
                 .map { CmdlineListItem(it) }
             val apps = pm.getInstalledApplications(MATCH_UNINSTALLED_PACKAGES).run {
