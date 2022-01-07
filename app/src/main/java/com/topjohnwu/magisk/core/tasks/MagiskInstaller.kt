@@ -359,6 +359,7 @@ abstract class MagiskInstallImpl protected constructor(
             "KEEPVERITY=${Config.keepVerity} " +
             "PATCHVBMETAFLAG=${Config.patchVbmeta} " +
             "RECOVERYMODE=${Config.recovery} " +
+            "FORCENORMALMODE=${Info.ramdisk} " +
             "sh boot_patch.sh $srcBoot")
 
         if (!cmds.sh().isSuccess)
