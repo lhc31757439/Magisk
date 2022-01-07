@@ -63,7 +63,7 @@ class FlashFragment : BaseUIFragment<FlashViewModel, FragmentFlashMd2Binding>() 
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        return when(event.keyCode) {
+        return when (event.keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP,
             KeyEvent.KEYCODE_VOLUME_DOWN -> true
             else -> false
@@ -72,6 +72,7 @@ class FlashFragment : BaseUIFragment<FlashViewModel, FragmentFlashMd2Binding>() 
 
     override fun onBackPressed(): Boolean {
         if (viewModel.loading) return true
+        if (viewModel.loaded && viewModel.showReboot) return true
         return super.onBackPressed()
     }
 
