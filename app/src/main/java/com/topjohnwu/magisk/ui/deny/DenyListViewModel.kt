@@ -6,7 +6,6 @@ import android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES
 import androidx.lifecycle.viewModelScope
 import com.topjohnwu.magisk.BR
 import com.topjohnwu.magisk.arch.BaseViewModel
-import com.topjohnwu.magisk.arch.Queryable
 import com.topjohnwu.magisk.core.AppApkPath
 import com.topjohnwu.magisk.databinding.filterableListOf
 import com.topjohnwu.magisk.databinding.itemBindingOf
@@ -15,15 +14,12 @@ import com.topjohnwu.magisk.ktx.concurrentMap
 import com.topjohnwu.magisk.signing.KeyData
 import com.topjohnwu.magisk.utils.Utils
 import com.topjohnwu.superuser.Shell
+import com.topjohnwu.superuser.internal.UiThreadHandler
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
-import kotlin.collections.ArrayList
 
-@FlowPreview
-class DenyListViewModel : BaseViewModel(), Queryable {
-
-    override val queryDelay = 0L
+class DenyListViewModel : BaseViewModel() {
 
     var isShowSystem = false
         set(value) {
@@ -49,6 +45,10 @@ class DenyListViewModel : BaseViewModel(), Queryable {
     }
     val itemInternalBinding = itemBindingOf<ProcessRvItem> {
         it.bindExtra(BR.viewModel, this)
+    }
+
+    private fun submitQuery() {
+        UiThreadHandler.run { query() }
     }
 
     @Suppress("DEPRECATION")
@@ -81,7 +81,7 @@ class DenyListViewModel : BaseViewModel(), Queryable {
         submitQuery()
     }
 
-    override fun query() {
+    fun query() {
         items.filter {
             fun filterSystem() = isShowSystem || !it.info.isSystemApp()
 

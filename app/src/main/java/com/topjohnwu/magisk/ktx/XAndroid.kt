@@ -8,7 +8,7 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.content.pm.PackageManager.*
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.database.Cursor
@@ -19,39 +19,26 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build.VERSION.SDK_INT
-import android.text.PrecomputedText
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.core.text.PrecomputedTextCompat
-import androidx.core.view.isGone
-import androidx.core.widget.TextViewCompat
-import androidx.databinding.BindingAdapter
 import androidx.fragment.app.Fragment
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import androidx.lifecycle.lifecycleScope
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.topjohnwu.magisk.R
 import com.topjohnwu.magisk.core.Const
-import com.topjohnwu.magisk.core.base.BaseActivity
 import com.topjohnwu.magisk.core.utils.currentLocale
-import com.topjohnwu.magisk.di.AppContext
 import com.topjohnwu.magisk.utils.DynamicClassLoader
 import com.topjohnwu.magisk.utils.Utils
 import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.reflect.Array as JArray
 
@@ -297,53 +284,6 @@ val View.activity: Activity get() {
             return context
         context = context.baseContext
     }
-}
-
-var View.coroutineScope: CoroutineScope
-    get() = getTag(R.id.coroutineScope) as? CoroutineScope
-        ?: (activity as? BaseActivity)?.lifecycleScope
-        ?: GlobalScope
-    set(value) = setTag(R.id.coroutineScope, value)
-
-@set:BindingAdapter("precomputedText")
-var TextView.precomputedText: CharSequence
-    get() = text
-    set(value) {
-        val callback = tag as? Runnable
-
-        coroutineScope.launch(Dispatchers.IO) {
-            if (SDK_INT >= 29) {
-                // Internally PrecomputedTextCompat will use platform API on API 29+
-                // Due to some stupid crap OEM (Samsung) implementation, this can actually
-                // crash our app. Directly use platform APIs with some workarounds
-                val pre = PrecomputedText.create(value, textMetricsParams)
-                post {
-                    try {
-                        text = pre
-                    } catch (e: IllegalArgumentException) {
-                        // Override to computed params to workaround crashes
-                        textMetricsParams = pre.params
-                        text = pre
-                    }
-                    isGone = false
-                    callback?.run()
-                }
-            } else {
-                val tv = this@precomputedText
-                val params = TextViewCompat.getTextMetricsParams(tv)
-                val pre = PrecomputedTextCompat.create(value, params)
-                post {
-                    TextViewCompat.setPrecomputedText(tv, pre)
-                    isGone = false
-                    callback?.run()
-                }
-            }
-        }
-    }
-
-fun Int.dpInPx(): Int {
-    val scale = AppContext.resources.displayMetrics.density
-    return (this * scale + 0.5).toInt()
 }
 
 @SuppressLint("PrivateApi")

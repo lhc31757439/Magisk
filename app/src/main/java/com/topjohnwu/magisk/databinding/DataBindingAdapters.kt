@@ -28,10 +28,8 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textfield.TextInputLayout
 import com.topjohnwu.magisk.R
-import com.topjohnwu.magisk.ktx.replaceRandomWithSpecial
 import com.topjohnwu.superuser.internal.UiThreadHandler
 import com.topjohnwu.widget.IndeterminateCheckBox
-import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
 @BindingAdapter("gone")
@@ -67,22 +65,6 @@ fun setImageResource(view: ImageView, @DrawableRes resId: Int) {
 @BindingAdapter("srcCompat")
 fun setImageResource(view: ImageView, drawable: Drawable) {
     view.setImageDrawable(drawable)
-}
-
-@BindingAdapter("movieBehavior", "movieBehaviorText")
-fun setMovieBehavior(view: TextView, isMovieBehavior: Boolean, text: String) {
-    (view.tag as? Job)?.cancel()
-    view.tag = null
-    if (isMovieBehavior) {
-        view.tag = GlobalScope.launch(Dispatchers.Main.immediate) {
-            while (true) {
-                delay(150)
-                view.text = text.replaceRandomWithSpecial()
-            }
-        }
-    } else {
-        view.text = text
-    }
 }
 
 @BindingAdapter("onTouch")

@@ -5,7 +5,6 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.topjohnwu.magisk.core.model.ModuleJson
 import com.topjohnwu.magisk.di.ServiceLocator
-import com.topjohnwu.magisk.ktx.legalFilename
 import kotlinx.parcelize.Parcelize
 import java.text.DateFormat
 import java.util.*
@@ -38,6 +37,9 @@ data class OnlineModule(
     val lastUpdate get() = Date(last_update)
     val lastUpdateString get() = DATE_FORMAT.format(lastUpdate)
     val downloadFilename get() = "$name-$version($versionCode).zip".legalFilename()
+    private fun String.legalFilename() = replace(" ", "_").replace("'", "").replace("\"", "")
+        .replace("$", "").replace("`", "").replace("*", "").replace("/", "_")
+        .replace("#", "").replace("@", "").replace("\\", "_")
 
     suspend fun notes() = svc.fetchString(notes_url)
 
